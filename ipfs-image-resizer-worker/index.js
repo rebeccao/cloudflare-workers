@@ -33,18 +33,34 @@ async function fetchWithRetry(url, options, retries = 3, backoff = 300) {
   throw new Error('Max retries reached');
 }
 
+export default {
+  async fetch(request, env, ctx) {
+    const DEBUG = env.DEBUG === 'true';
+
+    function log(...args) {
+      if (DEBUG) console.log(...args);
+    }
+
+    function error(...args) {
+      if (DEBUG) console.error(...args);
+    }
+
+    return handleRequest(request, env, ctx, log, error);
+  }
+};
+
 /**
  * Main request handler for the Worker.
  *
  * @param {FetchEvent} event - The fetch event object.
  * @returns {Promise<Response>} The response to return to the client.
  */
-async function handleRequest(event) {
-  const request = event.request;
+async function handleRequest(request, env, ctx, log, error) {
   const cache = caches.default;
 
   // Check if the request is already cached
   let response = await cache.match(request);
+  log(`Incoming request: ${request.url}`);
 
   if (!response) {
     const url = new URL(request.url);
@@ -57,6 +73,9 @@ async function handleRequest(event) {
       // Use Weserv.nl to resize and convert the image to webp format
       const resizedImageUrl = `https://images.weserv.nl/?url=${encodeURIComponent(originalUrl)}&w=1024&h=1024&output=webp`;
 
+      log(`Requested IPFS hash: ${ipfsHash}`);
+      log(`Resized image URL: ${resizedImageUrl}`);
+
       try {
         // Attempt to fetch the resized image with cache headers and timeout
         response = await fetchWithRetry(resizedImageUrl, { 
@@ -67,11 +86,12 @@ async function handleRequest(event) {
         if (response.ok) {
           // Clone and store in Cloudflare cache asynchronously
           const responseClone = response.clone();
-          event.waitUntil(cache.put(request, responseClone));
+          ctx.waitUntil(cache.put(request, responseClone));
         } else {
           response = new Response('Image fetch failed', { status: 500 });
         }
-      } catch (error) {
+      } catch (err) {
+        error(`Fetch failed: ${err.message}`);
         response = new Response('Image fetch failed', { status: 500 });
       }
     } else {

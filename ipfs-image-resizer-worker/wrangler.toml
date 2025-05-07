@@ -1,5 +1,5 @@
 name = "ipfs-image-resizer-worker"
-type = "javascript"
+main = "index.js"
 account_id = "d2a602a0ca085abb9803701d0c554d79"
 workers_dev = false
 compatibility_date = "2024-05-03"
@@ -8,3 +8,6 @@ routes = [
   "https://findlostpoets.xyz/ipfs/*",
   "https://staging.findlostpoets.xyz/ipfs/*"
 ]
+
+[vars]
+DEBUG = "true"
