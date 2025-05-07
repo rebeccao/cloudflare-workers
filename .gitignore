@@ -1,0 +1,12 @@
+# Editor junk
+.DS_Store
+*.log
+.vscode/
+.idea/
+
+# Node-related (if used in future)
+node_modules/
+
+# Env and secrets
+.env
+.env.*
