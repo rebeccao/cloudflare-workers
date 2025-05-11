@@ -68,30 +68,63 @@ async function handleRequest(request, env, ctx, log, error) {
     // Only process requests that match /ipfs/{CID}
     if (url.pathname.startsWith('/ipfs')) {
       const ipfsHash = url.pathname.split('/ipfs/')[1];
-      const originalUrl = `https://ipfs.io/ipfs/${ipfsHash}`;
+      const gateways = [
+        'https://ipfs.io/ipfs/',
+        'https://dweb.link/ipfs/',
+        'https://inbrowser.link/ipfs/'
+      ];
 
-      // Use Weserv.nl to resize and convert the image to webp format
-      const resizedImageUrl = `https://images.weserv.nl/?url=${encodeURIComponent(originalUrl)}&w=1024&h=1024&output=webp`;
+      for (const gateway of gateways) {
+        const originalUrl = `${gateway}${ipfsHash}`;
+        log(`Gateway URL: ${originalUrl}`);
 
-      log(`Requested IPFS hash: ${ipfsHash}`);
-      log(`Resized image URL: ${resizedImageUrl}`);
+        // If "raw" was passed in as a URL parameter, do not resize the image. Leave it at 2048x2048
+        if (url.searchParams.get("raw") === "true") {
+          try {
+            const rawResponse = await fetchWithRetry(originalUrl, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0',
+                'Accept': 'image/*,*/*;q=0.8'
+              }
+            });
+            if (rawResponse.ok) {
+              return rawResponse;
+            }
+          } catch (err) {
+            error(`Raw fetch failed from ${gateway}: ${err.message}`);
+          }
+          continue; // try next gateway
+        }
+        const resizedImageUrl = `https://images.weserv.nl/?url=${encodeURIComponent(originalUrl)}&w=1024&h=1024&output=jpg`;
+        log(`Resized image URL: ${resizedImageUrl}`);
 
-      try {
-        // Attempt to fetch the resized image with cache headers and timeout
-        response = await fetchWithRetry(resizedImageUrl, { 
-          cf: { cacheTtl: 31536000 },     // Instruct Cloudflare to cache it for 1 year
-          timeout: 5000 }                 // Optional timeout setting (can be ignored by some runtimes)
-        );
+        try {
+          response = await fetchWithRetry(resizedImageUrl, {
+            cf: { cacheTtl: 31536000, cacheEverything: true },
+            headers: {
+              'User-Agent': 'Mozilla/5.0',
+              'Accept': 'image/jpeg,image/*,*/*;q=0.8'
+            },
+            timeout: 5000
+          });
 
-        if (response.ok) {
-          // Clone and store in Cloudflare cache asynchronously
-          const responseClone = response.clone();
-          ctx.waitUntil(cache.put(request, responseClone));
-        } else {
+          if (response.ok) {
+            const responseClone = response.clone();
+            ctx.waitUntil(cache.put(request, responseClone));
+            break; // Exit loop on success
+          } else {
+            error(`Weserv response not ok for ${gateway}`);
+            response = new Response('Image fetch failed', { status: 500 });
+          }
+        } catch (err) {
+          error(`Fetch failed using ${gateway}: ${err.message}`);
           response = new Response('Image fetch failed', { status: 500 });
         }
-      } catch (err) {
-        error(`Fetch failed: ${err.message}`);
+      }
+
+      // If still no response, return failure
+      if (!response) {
+        error(`No response`);
         response = new Response('Image fetch failed', { status: 500 });
       }
     } else {
