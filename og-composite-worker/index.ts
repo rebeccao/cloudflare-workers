@@ -59,7 +59,7 @@ export default {
       log('Received request for:', { poetName, poetClass });
 
       if (g1.startsWith('https://ipfs.io/ipfs/')) {
-        g1 = g1.replace('https://ipfs.io/ipfs/', 'https://findlostpoets.xyz/ipfs/') + "?resize=600&format=jpg";
+        g1 = g1.replace('https://ipfs.io/ipfs/', 'https://findlostpoets.xyz/ipfs/') + "?resize=585&format=jpg";
         log('Redirected g1 to resized:', g1);
       }
 
@@ -153,64 +153,55 @@ export default {
         props: {
           style: {
             display: 'flex',
-            flexDirection: 'column',
-            width: 1240,
-            height: 640,
+            flexDirection: 'row',
+            width: 1200,
+            height: 605,
             backgroundColor: '#141414',
-            color: '#E8E8E8',
             fontFamily: 'Roboto',
-            justifyContent: 'flex-start',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '20px'
+            paddingLeft: 10,
+            paddingRight: 10,
+            gap: 10
           },
           children: [
             {
-              type: 'div',
+              type: 'img',
               props: {
-                style: { fontSize: 32, marginBottom: '20px' },
-                children: `${poetName} – ${poetClass}`,
+                src: g0DataUrl,
+                width: 585,
+                height: 585,
+                style: {
+                  objectFit: 'cover',
+                  display: 'block'
+                }
               }
             },
             {
-              type: 'div',
+              type: 'img',
               props: {
+                src: g1DataUrl,
+                width: 585,
+                height: 585,
                 style: {
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: '20px',
-                },
-                children: [
-                  {
-                    type: 'img',
-                    props: {
-                      src: g0DataUrl,
-                      width: 600,
-                      height: 560,
-                      style: {
-                        objectFit: 'cover'
-                      }
-                    }
-                  },
-                  {
-                    type: 'img',
-                    props: {
-                      src: g1DataUrl,
-                      width: 600,
-                      height: 560,
-                      style: {
-                        objectFit: 'cover'
-                      }
-                    }
-                  }
-                ]
+                  objectFit: 'cover',
+                  display: 'block'
+                }
               }
             }
           ]
         }
       }, {
-        width: 1240,
-        height: 640,
-        fonts: [{ name: 'Roboto', data: robotoFont, weight: 400, style: 'normal' }]
+        width: 1200,
+        height: 630,
+        fonts: [
+          {
+            name: 'Roboto',
+            data: robotoFont,
+            weight: 400,
+            style: 'normal'
+          }
+        ]
       });
       log('SVG generated in', Date.now() - tSvg, 'ms');
 
