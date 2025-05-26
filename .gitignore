@@ -13,3 +13,4 @@ node_modules/
 
 # Ignore wasm build output
 og-composite-worker/pkg/
+wasm-image-compositor/pkg/
