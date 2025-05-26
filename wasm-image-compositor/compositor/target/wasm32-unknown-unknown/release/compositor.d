@@ -1,0 +1,1 @@
+/Users/rebecca_odell/Code/cloudflare-workers/wasm-image-compositor/compositor/target/wasm32-unknown-unknown/release/compositor.wasm: /Users/rebecca_odell/Code/cloudflare-workers/wasm-image-compositor/compositor/src/lib.rs

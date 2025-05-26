@@ -10,3 +10,6 @@ node_modules/
 # Env and secrets
 .env
 .env.*
+
+# Ignore wasm build output
+og-composite-worker/pkg/
