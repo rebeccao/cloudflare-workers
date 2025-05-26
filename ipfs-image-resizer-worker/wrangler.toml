@@ -10,4 +10,4 @@ routes = [
 ]
 
 [vars]
-DEBUG = "true"
+DEBUG = "false"
