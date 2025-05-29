@@ -9,7 +9,7 @@ let wasmInitialized = false;
 
 async function ensureWasmInitialized() {
   if (!wasmInitialized) {
-    await init(wasm);
+    await init({ wasm });
     wasmInitialized = true;
   }
 }
@@ -44,6 +44,10 @@ export default {
     const g0Url = url.searchParams.get('g0');
     const g1Url = url.searchParams.get('g1');
     const poetName = url.searchParams.get('name') || 'Unknown';
+
+    // 🔍 Add these for debugging:
+    log('g0Url:', g0Url);
+    log('g1Url:', g1Url);
 
     if (!g0Url || !g1Url) {
       error('Missing g0Url or g1Url');

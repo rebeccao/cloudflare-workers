@@ -18,4 +18,4 @@ type = "esm"
 globs = ["pkg/compositor.js"]
 
 [vars]
-DEBUG = "false"
+DEBUG = "true"
